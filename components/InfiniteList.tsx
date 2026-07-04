@@ -66,8 +66,10 @@ export default function InfiniteList({
 
   useEffect(() => {
     function check() {
+      // generous margin: fetch the next batch well before the list's end is
+      // reachable, so fast scrolling doesn't hit the container boundary
       const nearBottom = window.innerHeight + window.scrollY >=
-        document.body.scrollHeight - 600;
+        document.body.scrollHeight - 1600;
       if (nearBottom) loadMore();
     }
     window.addEventListener("scroll", check, { passive: true });
@@ -83,8 +85,12 @@ export default function InfiniteList({
   const Card = { news: NewsCard, jobs: JobCard, products: ProductCard }[kind];
 
   return (
-    <>
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    // overflow-anchor:none — otherwise the browser anchors the viewport to
+    // the status row while it's in view, and every appended batch makes it
+    // jump-correct the scroll position, which shows up as the sticky
+    // sidebar/header flickering during fast scrolls
+    <div className="[overflow-anchor:none]">
+      <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
         {items.map((item) => (
           <Card key={keyOf[kind](item)} item={item} />
         ))}
@@ -103,6 +109,6 @@ export default function InfiniteList({
           `Showing ${items.length} of ${total} — scroll for more`
         )}
       </div>
-    </>
+    </div>
   );
 }

@@ -39,7 +39,7 @@ function CardImage({
 }) {
   if (src) {
     return (
-      <div className="flex h-40 w-full shrink-0 items-center justify-center
+      <div className="flex h-48 w-full shrink-0 items-center justify-center
           overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 p-1.5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={src} alt={alt} loading="lazy" decoding="async"
@@ -48,7 +48,7 @@ function CardImage({
     );
   }
   return (
-    <div className="flex h-40 w-full shrink-0 items-center justify-center
+    <div className="flex h-48 w-full shrink-0 items-center justify-center
         rounded-xl border border-zinc-800 bg-gradient-to-br
         from-zinc-800/70 via-zinc-900 to-zinc-950">
       {logo && (
@@ -61,11 +61,8 @@ function CardImage({
   );
 }
 
-/* content-visibility lets the browser skip painting off-screen cards, which
-   is most of the work during fast scrolling of a long list */
 const cardClass = `group flex flex-col gap-2.5 rounded-2xl border
     border-zinc-800 bg-zinc-900/60 p-5 transition-colors
-    [contain-intrinsic-size:auto_380px] [content-visibility:auto]
     hover:border-amber-500/40 hover:bg-zinc-900`;
 
 const TOPIC_STYLES: Record<string, { label: string; cls: string }> = {

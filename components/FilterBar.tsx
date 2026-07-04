@@ -72,10 +72,16 @@ export default function FilterBar({
   return (
     <div className="flex flex-col items-start gap-5 md:flex-row">
       {open ? (
+        /* fixed (not sticky) on desktop: a sticky sidebar gets pushed up by
+           its container's bottom edge at the end of the list, then snaps
+           back down when infinite scroll grows the container — visible as
+           flicker. Fixed positioning is immune to content reflows.
+           left = the page container's inner edge: max(padding, centered). */
         <aside className="w-full shrink-0 rounded-2xl border border-zinc-800
-            bg-zinc-950/90 p-4 shadow-lg shadow-black/30 will-change-transform
-            md:sticky md:top-[81px] md:max-h-[calc(100vh-105px)] md:w-64
-            md:overflow-y-auto">
+            bg-zinc-950/90 p-4 shadow-lg shadow-black/30
+            md:fixed md:top-[81px]
+            md:left-[max(1.5rem,calc(50vw-696px))]
+            md:max-h-[calc(100vh-105px)] md:w-64 md:overflow-y-auto">
           <div className="mb-3.5 flex items-center justify-between">
             <span className="flex items-center gap-2 text-sm font-semibold
                 text-zinc-200">
@@ -213,7 +219,7 @@ export default function FilterBar({
         </button>
       )}
 
-      <div className="min-w-0 flex-1">
+      <div className={`min-w-0 flex-1 ${open ? "md:ml-[280px]" : ""}`}>
         <div className="mb-4 text-[13px] text-zinc-500">
           <span className="font-semibold text-zinc-300">
             {resultCount.toLocaleString()}

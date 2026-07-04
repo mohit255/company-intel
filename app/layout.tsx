@@ -36,8 +36,9 @@ export default function RootLayout({
       <body className="min-h-screen bg-zinc-950 font-sans text-zinc-200
           antialiased">
         <header className="sticky top-0 z-40 border-b border-zinc-800
-            bg-zinc-950/85 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl items-center gap-8 px-5 py-4">
+            bg-zinc-950 will-change-transform">
+          <div className="mx-auto flex max-w-[1440px] items-center gap-8 px-6
+              py-4">
             <Link href="/" className="font-serif text-2xl font-bold
                 tracking-tight text-zinc-50">
               Company <span className="text-amber-400">Intel</span>
@@ -46,10 +47,12 @@ export default function RootLayout({
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-6xl px-5 pb-24">{children}</main>
+        <main className="mx-auto w-full max-w-[1440px] px-6 pb-24">
+          {children}
+        </main>
 
         <footer className="border-t border-zinc-800 py-12">
-          <div className="mx-auto flex max-w-6xl flex-col items-center
+          <div className="mx-auto flex max-w-[1440px] flex-col items-center
               gap-4 px-5 text-sm text-zinc-500">
             <div className="flex gap-6">
               <Link href="/news"

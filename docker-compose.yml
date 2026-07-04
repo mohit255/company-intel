@@ -1,7 +1,6 @@
 services:
   app:
     build: .
-    ports:
-      - "${PORT:-3000}:${PORT:-3000}"
+    network_mode: host
     env_file:
       - .env.local
