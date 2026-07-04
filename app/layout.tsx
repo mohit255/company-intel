@@ -48,10 +48,22 @@ export default function RootLayout({
 
         <main className="mx-auto w-full max-w-6xl px-5 pb-24">{children}</main>
 
-        <footer className="border-t border-zinc-800 py-10 text-center text-sm
-            text-zinc-600">
-          Company Intel — data scraped from public sources by the worker-pool
-          scraper, stored in PostgreSQL.
+        <footer className="border-t border-zinc-800 py-12">
+          <div className="mx-auto flex max-w-6xl flex-col items-center
+              gap-4 px-5 text-sm text-zinc-500">
+            <div className="flex gap-6">
+              <Link href="/news"
+                    className="transition hover:text-zinc-300">News</Link>
+              <Link href="/jobs"
+                    className="transition hover:text-zinc-300">Jobs</Link>
+              <Link href="/products"
+                    className="transition hover:text-zinc-300">Products</Link>
+            </div>
+            <p>
+              Company Intel — data scraped from public sources by the
+              worker-pool scraper, stored in PostgreSQL.
+            </p>
+          </div>
         </footer>
       </body>
     </html>

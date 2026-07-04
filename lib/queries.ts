@@ -1,10 +1,13 @@
+import { PAGE_SIZE } from "./constants";
 import { pool } from "./db";
+
+export { PAGE_SIZE, TOPIC_LABELS } from "./constants";
 
 export type NewsItem = {
   company: string; field: string; title: string; link: string;
   source: string | null; published: string | null; added: string;
   source_url: string | null; company_site: string | null;
-  company_image: string | null;
+  company_image: string | null; topic: string;
 };
 export type JobItem = {
   company: string; field: string; title: string; url: string;
@@ -22,13 +25,13 @@ export type Meta = {
   fields: string[];
   companies: string[];
   sources: string[];
+  topics: string[];
   countries: { country: string; jobs: number }[];
   citiesByCountry: Record<string, string[]>;
   allCities: string[];
 };
 
 const MAX_LIMIT = 200;
-export const PAGE_SIZE = 25;
 
 function where(conds: string[]) {
   return conds.length ? ` WHERE ${conds.join(" AND ")}` : "";
@@ -42,7 +45,7 @@ function unwrap<T>(rows: (T & { total: number })[]) {
 }
 
 export async function getMeta(): Promise<Meta> {
-  const [counts, fields, companies, sources, countries, cities] =
+  const [counts, fields, companies, sources, topics, countries, cities] =
     await Promise.all([
       pool.query(`SELECT
         (SELECT COUNT(*) FROM news)     AS news,
@@ -54,6 +57,7 @@ export async function getMeta(): Promise<Meta> {
                   UNION SELECT company FROM products ORDER BY 1`),
       pool.query(`SELECT DISTINCT source FROM news
                   WHERE source IS NOT NULL AND source <> '' ORDER BY 1`),
+      pool.query(`SELECT DISTINCT topic FROM news ORDER BY 1`),
       pool.query(`SELECT country, COUNT(DISTINCT job_id)::int AS jobs
                   FROM job_locations WHERE country IS NOT NULL
                   GROUP BY country ORDER BY jobs DESC, country`),
@@ -78,6 +82,7 @@ export async function getMeta(): Promise<Meta> {
     fields: fields.rows.map((r) => r.field),
     companies: companies.rows.map((r) => r.company),
     sources: sources.rows.map((r) => r.source),
+    topics: topics.rows.map((r) => r.topic),
     countries: countries.rows,
     citiesByCountry,
     allCities: [...allCities].sort(),
@@ -85,8 +90,8 @@ export async function getMeta(): Promise<Meta> {
 }
 
 export async function getNews(f: {
-  field?: string; company?: string; source?: string; q?: string;
-  limit?: number; offset?: number;
+  field?: string; company?: string; source?: string; topic?: string;
+  q?: string; limit?: number; offset?: number;
 }): Promise<{ items: NewsItem[]; total: number }> {
   const conds: string[] = [];
   const params: unknown[] = [];
@@ -96,6 +101,7 @@ export async function getNews(f: {
   add(f.field, "n.field = ?");
   add(f.company, "n.company = ?");
   add(f.source, "n.source = ?");
+  add(f.topic, "n.topic = ?");
   if (f.q) {
     params.push(f.q);
     conds.push(`(n.title ILIKE '%' || $${params.length} || '%'
@@ -106,7 +112,7 @@ export async function getNews(f: {
   params.push(f.offset ?? 0);
   const { rows } = await pool.query(
     `SELECT n.company, n.field, n.title, n.link, n.source, n.source_url,
-            c.website AS company_site, c.image AS company_image,
+            n.topic, c.website AS company_site, c.image AS company_image,
             to_char(n.published, 'DD Mon YYYY') AS published,
             to_char(n.fetched_at, 'DD Mon YYYY') AS added,
             COUNT(*) OVER()::int AS total

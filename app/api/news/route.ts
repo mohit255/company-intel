@@ -6,6 +6,7 @@ export async function GET(request: Request) {
     field: p.get("field") ?? "",
     company: p.get("company") ?? "",
     source: p.get("source") ?? "",
+    topic: p.get("topic") ?? "",
     q: p.get("q") ?? "",
     limit: Number(p.get("limit")) || PAGE_SIZE,
     offset: Number(p.get("offset")) || 0,

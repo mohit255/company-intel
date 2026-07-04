@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { PAGE_SIZE } from "@/lib/constants";
 import type { JobItem, NewsItem, ProductItem } from "@/lib/queries";
 import { JobCard, NewsCard, ProductCard } from "./Cards";
 import Spinner from "./Spinner";
@@ -19,7 +20,7 @@ export default function InfiniteList({
   initialItems,
   total,
   filters,
-  pageSize = 25,
+  pageSize = PAGE_SIZE,
 }: {
   kind: Kind;
   initialItems: unknown[];
@@ -50,7 +51,13 @@ export default function InfiniteList({
       const data: { items: Item[]; total: number } = await res.json();
       s.count += data.items.length;
       s.done = data.items.length === 0 || s.count >= (data.total || total);
-      setItems((prev) => [...prev, ...data.items]);
+      // drop items already in the list — offsets can shift between requests
+      // when new articles arrive, and duplicate keys make React re-mount
+      // (flicker) cards
+      setItems((prev) => {
+        const seen = new Set(prev.map(keyOf[kind]));
+        return [...prev, ...data.items.filter((i) => !seen.has(keyOf[kind](i)))];
+      });
     } finally {
       s.loading = false;
       setLoading(false);

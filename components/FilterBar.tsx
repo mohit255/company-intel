@@ -31,15 +31,16 @@ export default function FilterBar({
   const router = useRouter();
   const pathname = usePathname();
   const [q, setQ] = useState(current.q ?? "");
-  const [open, setOpen] = useState(true);
+  // lazy initializer reads localStorage synchronously on the client so the
+  // sidebar doesn't render open and then snap closed after hydration
+  const [open, setOpen] = useState(() =>
+    typeof window === "undefined"
+      ? true
+      : localStorage.getItem("filters-open") !== "0");
   const [catOpen, setCatOpen] = useState(true);
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => setQ(current.q ?? ""), [current.q]);
-  useEffect(() => {
-    const saved = localStorage.getItem("filters-open");
-    if (saved !== null) setOpen(saved === "1");
-  }, []);
 
   function toggle(next: boolean) {
     setOpen(next);
@@ -72,8 +73,8 @@ export default function FilterBar({
     <div className="flex flex-col items-start gap-5 md:flex-row">
       {open ? (
         <aside className="w-full shrink-0 rounded-2xl border border-zinc-800
-            bg-zinc-950/90 p-4 shadow-lg shadow-black/30 md:sticky
-            md:top-[81px] md:max-h-[calc(100vh-105px)] md:w-64
+            bg-zinc-950/90 p-4 shadow-lg shadow-black/30 will-change-transform
+            md:sticky md:top-[81px] md:max-h-[calc(100vh-105px)] md:w-64
             md:overflow-y-auto">
           <div className="mb-3.5 flex items-center justify-between">
             <span className="flex items-center gap-2 text-sm font-semibold
@@ -194,8 +195,8 @@ export default function FilterBar({
             className="flex shrink-0 items-center gap-2 rounded-xl border
                 border-zinc-800 bg-zinc-950/90 px-3.5 py-2.5 text-[13px]
                 font-medium text-zinc-300 shadow-lg shadow-black/30
-                transition hover:border-amber-500/50 hover:text-amber-300
-                md:sticky md:top-[81px]">
+                transition will-change-transform hover:border-amber-500/50
+                hover:text-amber-300 md:sticky md:top-[81px]">
           <FunnelIcon />
           Filters
           {activeCount > 0 && (

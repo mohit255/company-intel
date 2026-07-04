@@ -3,17 +3,98 @@
 SEO-friendly, server-rendered website over the scraped company data in
 PostgreSQL (`company_intel` database, filled by `../web-scraper`).
 
-## Run
+## Prerequisites
+
+- An external PostgreSQL database (any host — RDS, Supabase, local, etc.)
+- The database must already exist and be populated by the scraper
+
+---
+
+## Setup & Run
+
+### Option A — Docker (recommended)
+
+**Requires:** [Docker](https://docs.docker.com/get-docker/)
+
+**Step 1.** Clone the repo
 
 ```bash
-npm run dev      # http://localhost:3000 (or PORT env)
-npm run build && npm start   # production
+git clone <repo-url>
+cd company-intel
 ```
 
-Environment:
+**Step 2.** Create your env file
 
-- `DATABASE_URL` — defaults to `postgresql://localhost:5432/company_intel`
-- `SITE_URL` — public URL used in metadata/sitemap (set in production)
+```bash
+cp .env.local.example .env.local
+```
+
+Edit `.env.local`:
+
+```env
+DATABASE_URL=postgresql://user:password@your-db-host:5432/company_intel
+SITE_URL=http://localhost:3000
+PORT=3000
+```
+
+**Step 3.** Build and start
+
+```bash
+docker compose up --build
+```
+
+**Step 4.** Open `http://localhost:<PORT>`
+
+```bash
+docker compose down   # stop when done
+```
+
+---
+
+### Option B — Local (Unix/macOS, no Docker)
+
+**Requires:** Node.js 20+
+
+**Step 1.** Clone the repo
+
+```bash
+git clone <repo-url>
+cd company-intel
+```
+
+**Step 2.** Create your env file
+
+```bash
+cp .env.local.example .env.local
+```
+
+Edit `.env.local`:
+
+```env
+DATABASE_URL=postgresql://user:password@your-db-host:5432/company_intel
+SITE_URL=http://localhost:3000
+PORT=3000
+```
+
+**Step 3.** Install dependencies
+
+```bash
+npm install
+```
+
+**Step 4.** Run
+
+```bash
+# Development (hot reload)
+npm run dev
+
+# Production
+npm run build && npm start
+```
+
+The server reads `PORT` from `.env.local` automatically.
+
+**Step 5.** Open `http://localhost:<PORT>`
 
 ## Pages & filters
 

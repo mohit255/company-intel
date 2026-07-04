@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import FilterBar from "@/components/FilterBar";
 import InfiniteList from "@/components/InfiniteList";
-import { getMeta, getNews } from "@/lib/queries";
+import { getMeta, getNews, TOPIC_LABELS } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -17,12 +17,12 @@ export async function generateMetadata({
   searchParams: SearchParams;
 }): Promise<Metadata> {
   const sp = await searchParams;
-  const scope = [str(sp.company), str(sp.field), str(sp.source)]
-    .filter(Boolean).join(" · ");
+  const scope = [str(sp.company), str(sp.field), str(sp.source),
+    TOPIC_LABELS[str(sp.topic)]].filter(Boolean).join(" · ");
   return {
     title: scope ? `${scope} — News` : "News",
-    description: `Latest scraped news${scope ? ` about ${scope}` : ""} from
-        the world's top companies.`,
+    description: `Latest scraped news, stock updates and IPO coverage
+        ${scope ? ` about ${scope}` : ""} from the world's top companies.`,
   };
 }
 
@@ -36,6 +36,7 @@ export default async function NewsPage({
     field: str(sp.field),
     company: str(sp.company),
     source: str(sp.source),
+    topic: str(sp.topic),
     q: str(sp.q),
   };
   const [meta, { items, total }] = await Promise.all([
@@ -43,9 +44,12 @@ export default async function NewsPage({
 
   return (
     <div className="space-y-8 pt-10">
-      <header className="space-y-1">
+      <header className="relative overflow-hidden rounded-2xl border
+          border-zinc-800 bg-zinc-900/50 px-7 py-8">
+        <div className="pointer-events-none absolute -right-10 -top-10
+            h-40 w-40 rounded-full bg-amber-500/10 blur-3xl" />
         <h1 className="font-serif text-4xl font-bold text-zinc-50">News</h1>
-        <p className="text-zinc-400">
+        <p className="mt-1 text-zinc-400">
           {meta.counts.news} articles from Google News, across{" "}
           {meta.fields.length} industries.
         </p>
@@ -54,6 +58,14 @@ export default async function NewsPage({
       <FilterBar
         fields={meta.fields}
         selects={[
+          {
+            key: "topic",
+            label: "Topic",
+            options: meta.topics.map((t) => ({
+              value: t,
+              label: TOPIC_LABELS[t] ?? t,
+            })),
+          },
           { key: "company", label: "Company", options: meta.companies },
           { key: "source", label: "Source", options: meta.sources },
         ]}
