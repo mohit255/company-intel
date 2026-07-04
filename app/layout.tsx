@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import Link from "next/link";
+import { Suspense } from "react";
 import NavLinks from "@/components/NavLinks";
+import Tracker from "@/components/Tracker";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -35,6 +37,9 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body className="min-h-screen bg-zinc-950 font-sans text-zinc-200
           antialiased">
+        <Suspense fallback={null}>
+          <Tracker />
+        </Suspense>
         <header className="sticky top-0 z-40 border-b border-zinc-800
             bg-zinc-950 will-change-transform">
           <div className="mx-auto flex max-w-[1440px] items-center gap-8 px-6

@@ -99,6 +99,8 @@ export const NewsCard = memo(function NewsCard({
   const icon = logoUrl(item.source_url) ?? logoUrl(item.company_site);
   return (
     <a href={item.link} target="_blank" rel="noopener noreferrer"
+       data-track="news" data-title={item.title} data-company={item.company}
+       data-field={item.field}
        className={cardClass}>
       <CardImage src={item.company_image}
                  logo={logoUrl(item.company_site, 128)} alt={item.company} />
@@ -131,6 +133,8 @@ export const NewsCard = memo(function NewsCard({
 export const JobCard = memo(function JobCard({ item }: { item: JobItem }) {
   return (
     <a href={item.url} target="_blank" rel="noopener noreferrer"
+       data-track="job" data-title={item.title} data-company={item.company}
+       data-field={item.field}
        className={cardClass}>
       <CardImage src={item.company_image}
                  logo={logoUrl(item.company_site, 128)} alt={item.company} />
@@ -162,6 +166,8 @@ export const ProductCard = memo(function ProductCard({
 }) {
   return (
     <a href={item.url} target="_blank" rel="noopener noreferrer"
+       data-track="product" data-title={item.page_title ?? item.url}
+       data-company={item.company} data-field={item.field}
        className={cardClass}>
       <CardImage src={item.image ?? item.company_image}
                  logo={logoUrl(item.company_site, 128)}

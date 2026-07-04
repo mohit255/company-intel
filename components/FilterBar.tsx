@@ -18,6 +18,7 @@ export default function FilterBar({
   citiesByCountry,
   searchable = true,
   resultCount,
+  header,
   children,
 }: {
   fields: string[];
@@ -26,6 +27,7 @@ export default function FilterBar({
   citiesByCountry?: Record<string, string[]>;
   searchable?: boolean;
   resultCount: number;
+  header?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const router = useRouter();
@@ -220,6 +222,7 @@ export default function FilterBar({
       )}
 
       <div className={`min-w-0 flex-1 ${open ? "md:ml-[280px]" : ""}`}>
+        {header && <div className="mb-6">{header}</div>}
         <div className="mb-4 text-[13px] text-zinc-500">
           <span className="font-semibold text-zinc-300">
             {resultCount.toLocaleString()}
