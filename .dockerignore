@@ -2,7 +2,7 @@
 .gitignore
 node_modules
 .next
-.env*.local
+#.env*.local
 Dockerfile
 .dockerignore
 README.md
