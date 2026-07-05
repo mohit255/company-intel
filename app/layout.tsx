@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import Link from "next/link";
 import { Suspense } from "react";
+import Footer from "@/components/Footer";
+import MarketTicker from "@/components/MarketTicker";
 import NavLinks from "@/components/NavLinks";
 import Tracker from "@/components/Tracker";
 import "./globals.css";
@@ -41,38 +43,25 @@ export default function RootLayout({
           <Tracker />
         </Suspense>
         <header className="sticky top-0 z-40 border-b border-zinc-800
-            bg-zinc-950 will-change-transform">
-          <div className="mx-auto flex max-w-[1440px] items-center gap-8 px-6
-              py-4">
+            bg-zinc-950 will-change-transform relative">
+          <div className="mx-auto flex max-w-[1440px] items-center gap-4
+              px-4 py-3 sm:gap-8 sm:px-6 sm:py-4">
             <Link href="/" className="font-serif text-2xl font-bold
                 tracking-tight text-zinc-50">
               Company <span className="text-amber-400">Intel</span>
             </Link>
             <NavLinks />
           </div>
+          <Suspense fallback={null}>
+            <MarketTicker />
+          </Suspense>
         </header>
 
-        <main className="mx-auto w-full max-w-[1440px] px-6 pb-24">
+        <main className="mx-auto w-full max-w-[1440px] px-4 pb-24 sm:px-6">
           {children}
         </main>
 
-        <footer className="border-t border-zinc-800 py-12">
-          <div className="mx-auto flex max-w-[1440px] flex-col items-center
-              gap-4 px-5 text-sm text-zinc-500">
-            <div className="flex gap-6">
-              <Link href="/news"
-                    className="transition hover:text-zinc-300">News</Link>
-              <Link href="/jobs"
-                    className="transition hover:text-zinc-300">Jobs</Link>
-              <Link href="/products"
-                    className="transition hover:text-zinc-300">Products</Link>
-            </div>
-            <p>
-              Company Intel — data scraped from public sources by the
-              worker-pool scraper, stored in PostgreSQL.
-            </p>
-          </div>
-        </footer>
+        <Footer />
       </body>
     </html>
   );

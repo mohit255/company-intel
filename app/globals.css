@@ -5,6 +5,23 @@
   --font-serif: var(--font-playfair), Georgia, "Times New Roman", serif;
 }
 
+:root {
+  --header-h: 97px;
+}
+
 ::selection {
   background: rgb(245 158 11 / 0.35);
+}
+
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.animate-ticker {
+  animation: ticker 120s linear infinite;
+}
+
+.animate-ticker:hover {
+  animation-play-state: paused;
 }

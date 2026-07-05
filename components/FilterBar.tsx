@@ -72,18 +72,12 @@ export default function FilterBar({
   const activeCount = Object.values(current).filter(Boolean).length;
 
   return (
-    <div className="flex flex-col items-start gap-5 md:flex-row">
+    <div className={`flex items-start gap-5 ${open ? "flex-col md:flex-row" : "flex-col"}`}>
       {open ? (
-        /* fixed (not sticky) on desktop: a sticky sidebar gets pushed up by
-           its container's bottom edge at the end of the list, then snaps
-           back down when infinite scroll grows the container — visible as
-           flicker. Fixed positioning is immune to content reflows.
-           left = the page container's inner edge: max(padding, centered). */
         <aside className="w-full shrink-0 rounded-2xl border border-zinc-800
             bg-zinc-950/90 p-4 shadow-lg shadow-black/30
-            md:fixed md:top-[81px]
-            md:left-[max(1.5rem,calc(50vw-696px))]
-            md:max-h-[calc(100vh-105px)] md:w-64 md:overflow-y-auto">
+            md:sticky md:top-[var(--header-h)]
+            md:max-h-[calc(100vh-var(--header-h)-8px)] md:w-64 md:overflow-y-auto">
           <div className="mb-3.5 flex items-center justify-between">
             <span className="flex items-center gap-2 text-sm font-semibold
                 text-zinc-200">
@@ -198,30 +192,31 @@ export default function FilterBar({
             </button>
           )}
         </aside>
-      ) : (
-        <button onClick={() => toggle(true)} title="Show filters"
-            className="flex shrink-0 items-center gap-2 rounded-xl border
-                border-zinc-800 bg-zinc-950/90 px-3.5 py-2.5 text-[13px]
-                font-medium text-zinc-300 shadow-lg shadow-black/30
-                transition will-change-transform hover:border-amber-500/50
-                hover:text-amber-300 md:sticky md:top-[81px]">
-          <FunnelIcon />
-          Filters
-          {activeCount > 0 && (
-            <span className="rounded-full bg-amber-500/15 px-2 text-[11px]
-                font-semibold text-amber-300">
-              {activeCount}
-            </span>
-          )}
-          <svg className="h-3.5 w-3.5 text-zinc-500" viewBox="0 0 16 16"
-              fill="none" stroke="currentColor" strokeWidth="2"
-              strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 3l5 5-5 5M7 3l5 5-5 5" />
-          </svg>
-        </button>
-      )}
+      ) : null}
 
-      <div className={`min-w-0 flex-1 ${open ? "md:ml-[280px]" : ""}`}>
+      <div className={`min-w-0 ${open ? "flex-1" : "w-full"}`}>
+        {!open && (
+          <button onClick={() => toggle(true)} title="Show filters"
+              className="mb-4 flex items-center gap-2 rounded-xl border
+                  border-zinc-800 bg-zinc-950/90 px-3.5 py-2 text-[13px]
+                  font-medium text-zinc-300 transition
+                  hover:border-amber-500/50 hover:text-amber-300">
+            <FunnelIcon />
+            Filters
+            {activeCount > 0 && (
+              <span className="rounded-full bg-amber-500/15 px-2 text-[11px]
+                  font-semibold text-amber-300">
+                {activeCount}
+              </span>
+            )}
+            <svg className="h-3.5 w-3.5 text-zinc-500" viewBox="0 0 16 16"
+                fill="none" stroke="currentColor" strokeWidth="2"
+                strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 3l5 5-5 5M7 3l5 5-5 5" />
+            </svg>
+          </button>
+        )}
+
         {header && <div className="mb-6">{header}</div>}
         <div className="mb-4 text-[13px] text-zinc-500">
           <span className="font-semibold text-zinc-300">

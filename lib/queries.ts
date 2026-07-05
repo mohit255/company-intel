@@ -154,6 +154,20 @@ export async function getJobs(f: {
   return unwrap<JobItem>(rows);
 }
 
+export type TickerItem = {
+  company: string; title: string; link: string; topic: string;
+};
+
+export async function getTickerNews(): Promise<TickerItem[]> {
+  const { rows } = await pool.query(
+    `SELECT n.company, n.title, n.link, n.topic
+     FROM news n
+     WHERE n.topic IN ('stock', 'market')
+     ORDER BY n.published DESC NULLS LAST, n.id DESC
+     LIMIT 20`);
+  return rows;
+}
+
 export async function getProducts(f: {
   field?: string; company?: string; limit?: number; offset?: number;
 }): Promise<{ items: ProductItem[]; total: number }> {

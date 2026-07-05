@@ -45,10 +45,11 @@ export default async function NewsPage({
   return (
     <div className="space-y-8 pt-10">
       <header className="relative overflow-hidden rounded-2xl border
-          border-zinc-800 bg-zinc-900/50 px-7 py-8">
+          border-zinc-800 bg-zinc-900/50 px-5 py-6 sm:px-7 sm:py-8">
         <div className="pointer-events-none absolute -right-10 -top-10
             h-40 w-40 rounded-full bg-amber-500/10 blur-3xl" />
-        <h1 className="font-serif text-4xl font-bold text-zinc-50">News</h1>
+        <h1 className="font-serif text-3xl font-bold text-zinc-50
+            sm:text-4xl">News</h1>
         <p className="mt-1 text-zinc-400">
           {meta.counts.news} articles from Google News, across{" "}
           {meta.fields.length} industries.

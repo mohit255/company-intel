@@ -26,9 +26,9 @@ export default async function Home() {
               h-64 w-64 rounded-full
               bg-[radial-gradient(ellipse_at_center,theme(colors.amber.500/10),transparent_70%)]
               blur-3xl" />
-          <h1 className="relative mx-auto max-w-3xl font-serif text-5xl
+          <h1 className="relative mx-auto max-w-3xl font-serif text-3xl
               font-bold leading-tight tracking-tight text-zinc-50
-              sm:text-6xl">
+              sm:text-5xl lg:text-6xl">
             Intelligence on the world&apos;s{" "}
             <span className="bg-gradient-to-r from-amber-300 to-orange-500
                 bg-clip-text text-transparent">
