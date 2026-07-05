@@ -1,4 +1,3 @@
-import { connection } from "next/server";
 import { PAGE_SIZE } from "./constants";
 import { pool } from "./db";
 
@@ -160,7 +159,6 @@ export type TickerItem = {
 };
 
 export async function getTickerNews(): Promise<TickerItem[]> {
-  await connection();
   const { rows } = await pool.query(
     `SELECT n.company, n.title, n.link, n.topic
      FROM news n

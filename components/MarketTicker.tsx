@@ -7,7 +7,12 @@ const topicStyle: Record<string, string> = {
 };
 
 export default async function MarketTicker() {
-  const items = await getTickerNews();
+  let items: Awaited<ReturnType<typeof getTickerNews>> = [];
+  try {
+    items = await getTickerNews();
+  } catch {
+    return null;
+  }
   if (!items.length) return null;
 
   // duplicate for seamless loop
