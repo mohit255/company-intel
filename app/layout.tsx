@@ -50,7 +50,9 @@ export default function RootLayout({
                 tracking-tight text-zinc-50">
               Company <span className="text-amber-400">Intel</span>
             </Link>
-            <NavLinks />
+            <Suspense fallback={null}>
+              <NavLinks />
+            </Suspense>
           </div>
           <Suspense fallback={null}>
             <MarketTicker />
