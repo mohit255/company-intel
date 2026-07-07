@@ -240,7 +240,7 @@ export async function getProducts(f: {
             to_char(p.fetched_at, 'DD Mon YYYY') AS added,
             COUNT(*) OVER()::int AS total
      FROM products p LEFT JOIN companies c ON c.name = p.company
-     ${where(conds)} ORDER BY p.company
+     ${where(conds)} ORDER BY p.fetched_at DESC, p.company
      LIMIT $${lim} OFFSET $${params.length}`, params);
   return unwrap<ProductItem>(rows);
 }
