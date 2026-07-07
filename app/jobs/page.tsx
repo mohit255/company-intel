@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import DatasetCount from "@/components/DatasetCount";
 import FilterBar from "@/components/FilterBar";
 import InfiniteList from "@/components/InfiniteList";
-import { getJobs, getMeta } from "@/lib/queries";
+import { getJobs } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -39,8 +40,7 @@ export default async function JobsPage({
     city: str(sp.city),
     q: str(sp.q),
   };
-  const [meta, { items, total }] = await Promise.all([
-    getMeta(), getJobs(filters)]);
+  const { items, total } = await getJobs(filters);
 
   return (
     <div className="space-y-8 pt-10">
@@ -50,30 +50,10 @@ export default async function JobsPage({
             h-40 w-40 rounded-full bg-amber-500/10 blur-3xl" />
         <h1 className="font-serif text-3xl font-bold text-zinc-50
             sm:text-4xl">Jobs</h1>
-        <p className="mt-1 text-zinc-400">
-          {meta.counts.jobs} openings in {meta.countries.length} countries —
-          straight from company career APIs.
-        </p>
+        <DatasetCount kind="jobs" />
       </header>
 
-      <FilterBar
-        fields={meta.fields}
-        selects={[
-          { key: "company", label: "Company", options: meta.companies },
-          {
-            key: "country",
-            label: "Country",
-            options: meta.countries.map((c) => ({
-              value: c.country,
-              label: `${c.country} (${c.jobs})`,
-            })),
-          },
-          { key: "city", label: "City", options: meta.allCities },
-        ]}
-        current={filters}
-        citiesByCountry={meta.citiesByCountry}
-        resultCount={total}
-      >
+      <FilterBar kind="jobs" current={filters} resultCount={total}>
         {total ? (
           <InfiniteList key={JSON.stringify(filters)} kind="jobs"
               initialItems={items} total={total} filters={filters} />

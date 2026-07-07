@@ -3,6 +3,12 @@ import { pool } from "./db";
 /* Self-contained analytics: one events table, created lazily once per
    server boot so the site works even on a fresh database. */
 
+/* Creating this table requires CREATE privilege on schema `public` for
+   the DB user in DATABASE_URL — on Postgres 15+ this is NOT granted by
+   default (same root cause as the scraper's InsufficientPrivilege error).
+   Fix by granting/transferring public schema ownership to the app user,
+   or by having an admin pre-create this table once and granting the app
+   user only SELECT/INSERT/UPDATE/DELETE on it afterward. */
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS analytics_events (
   id         BIGSERIAL PRIMARY KEY,
@@ -25,7 +31,16 @@ CREATE INDEX IF NOT EXISTS ae_created_idx ON analytics_events (created_at);
 
 let ready: Promise<void> | null = null;
 function ensureTable() {
-  ready ??= pool.query(SCHEMA).then(() => undefined);
+  if (!ready) {
+    ready = pool.query(SCHEMA).then(
+      () => undefined,
+      (err) => {
+        ready = null;
+        console.error("[analytics] schema setup failed:", err);
+        throw err;
+      },
+    );
+  }
   return ready;
 }
 

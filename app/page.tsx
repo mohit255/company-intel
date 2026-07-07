@@ -1,22 +1,16 @@
 import Link from "next/link";
-import { fieldColor, JobCard, NewsCard } from "@/components/Cards";
-import { getJobs, getMeta, getNews } from "@/lib/queries";
+import { JobCard, NewsCard } from "@/components/Cards";
+import IndustryChips from "@/components/IndustryChips";
+import StatsTiles from "@/components/StatsTiles";
+import { getJobs, getNews } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [meta, { items: news }, { items: jobs }] = await Promise.all([
-    getMeta(),
+  const [{ items: news }, { items: jobs }] = await Promise.all([
     getNews({ limit: 6 }),
     getJobs({ limit: 6 }),
   ]);
-
-  const stats = [
-    { n: meta.counts.news, label: "news articles" },
-    { n: meta.counts.jobs, label: "job openings" },
-    { n: meta.companies.length, label: "companies" },
-    { n: meta.countries.length, label: "countries" },
-  ];
 
   return (
     <div className="space-y-16 pt-16">
@@ -40,18 +34,7 @@ export default async function Home() {
           Fresh news, job openings and product pricing — scraped from public
           sources, filterable by industry, company, country and city.
         </p>
-        <div className="flex flex-wrap justify-center gap-6">
-          {stats.map((s) => (
-            <div key={s.label}
-                className="rounded-2xl border border-zinc-800
-                    bg-zinc-900/60 px-6 py-4">
-              <div className="font-serif text-4xl font-bold text-amber-400">
-                {s.n}
-              </div>
-              <div className="text-sm text-zinc-500">{s.label}</div>
-            </div>
-          ))}
-        </div>
+        <StatsTiles />
       </section>
 
       <section className="space-y-4">
@@ -59,19 +42,7 @@ export default async function Home() {
             tracking-widest text-zinc-400">
           Browse by industry
         </h2>
-        <div className="flex flex-wrap justify-center gap-2.5">
-          {meta.fields.map((f) => (
-            <Link key={f} href={`/news?field=${encodeURIComponent(f)}`}
-                  className="inline-flex items-center gap-2 rounded-full
-                      border border-zinc-800 bg-zinc-900 px-4 py-1.5 text-sm
-                      text-zinc-300 transition hover:border-amber-500/60
-                      hover:text-amber-300">
-              <span className="h-2 w-2 rounded-full"
-                    style={{ backgroundColor: fieldColor(f) }} />
-              {f}
-            </Link>
-          ))}
-        </div>
+        <IndustryChips />
       </section>
 
       <Section title="Latest news" href="/news">

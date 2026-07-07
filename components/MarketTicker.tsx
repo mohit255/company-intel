@@ -1,18 +1,49 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { TOPIC_LABELS } from "@/lib/constants";
-import { getTickerNews } from "@/lib/queries";
+import type { TickerItem } from "@/lib/queries";
+import Spinner from "./Spinner";
 
 const topicStyle: Record<string, string> = {
   stock: "bg-emerald-500/15 text-emerald-400",
   market: "bg-blue-500/15 text-blue-400",
 };
 
-export default async function MarketTicker() {
-  let items: Awaited<ReturnType<typeof getTickerNews>> = [];
-  try {
-    items = await getTickerNews();
-  } catch {
-    return null;
+export default function MarketTicker() {
+  const [items, setItems] = useState<TickerItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/ticker")
+      .then((res) => res.json())
+      .then((data: TickerItem[]) => {
+        if (!cancelled) setItems(data);
+      })
+      .catch(() => {
+        // graceful no-op — matches previous server-side catch { return null }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="border-b border-zinc-800/60 bg-zinc-950">
+        <div className="flex items-center justify-center py-2">
+          <Spinner size={14} />
+        </div>
+      </div>
+    );
   }
+
   if (!items.length) return null;
 
   // duplicate for seamless loop

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import DatasetCount from "@/components/DatasetCount";
 import FilterBar from "@/components/FilterBar";
 import InfiniteList from "@/components/InfiniteList";
-import { getMeta, getProducts } from "@/lib/queries";
+import { getProducts } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -24,8 +25,7 @@ export default async function ProductsPage({
 }) {
   const sp = await searchParams;
   const filters = { field: str(sp.field), company: str(sp.company) };
-  const [meta, { items, total }] = await Promise.all([
-    getMeta(), getProducts(filters)]);
+  const { items, total } = await getProducts(filters);
 
   return (
     <div className="space-y-8 pt-10">
@@ -37,20 +37,10 @@ export default async function ProductsPage({
             sm:text-4xl">
           Products &amp; Pricing
         </h1>
-        <p className="mt-1 text-zinc-400">
-          {meta.counts.products} product pages with extracted price points.
-        </p>
+        <DatasetCount kind="products" />
       </header>
 
-      <FilterBar
-        fields={meta.fields}
-        selects={[
-          { key: "company", label: "Company", options: meta.companies },
-        ]}
-        current={filters}
-        searchable={false}
-        resultCount={total}
-      >
+      <FilterBar kind="products" current={filters} resultCount={total}>
         {total ? (
           <InfiniteList key={JSON.stringify(filters)} kind="products"
               initialItems={items} total={total} filters={filters} />

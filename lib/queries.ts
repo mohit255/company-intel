@@ -44,7 +44,36 @@ function unwrap<T>(rows: (T & { total: number })[]) {
   return { items: rows.map(({ total: _, ...r }) => r as T), total };
 }
 
+// getMeta() backs the filter-dropdown option lists (fields, companies,
+// sources, topics, countries, cities) and is called on every page render
+// (home, /news, /jobs, /products). The underlying data only changes when
+// the hourly scraper runs, so a short TTL cache avoids re-running 7
+// UNION/DISTINCT scans across news/jobs/products/job_locations on every
+// navigation. The in-flight promise is cached too (not just the resolved
+// value) so a burst of concurrent requests hitting a cold/expired cache
+// (e.g. several tabs loading at once) share one query instead of each
+// firing their own copy.
+let metaCache: { data: Meta; at: number } | null = null;
+let metaInFlight: Promise<Meta> | null = null;
+const META_TTL_MS = 60_000;
+
 export async function getMeta(): Promise<Meta> {
+  if (metaCache && Date.now() - metaCache.at < META_TTL_MS) {
+    return metaCache.data;
+  }
+  if (metaInFlight) return metaInFlight;
+  metaInFlight = fetchMeta()
+    .then((data) => {
+      metaCache = { data, at: Date.now() };
+      return data;
+    })
+    .finally(() => {
+      metaInFlight = null;
+    });
+  return metaInFlight;
+}
+
+async function fetchMeta(): Promise<Meta> {
   const [counts, fields, companies, sources, topics, countries, cities] =
     await Promise.all([
       pool.query(`SELECT
@@ -158,7 +187,33 @@ export type TickerItem = {
   company: string; title: string; link: string; topic: string;
 };
 
+// getTickerNews() feeds the MarketTicker server component, which renders
+// inside the root <header> (app/layout.tsx) — i.e. on every single route,
+// including the "fast" static-ish parts of the page. Cache with a shorter
+// 30s TTL (vs. getMeta's 60s) since this is "live" market news and reads
+// better a bit fresher, while still cutting per-navigation query volume.
+// Same stampede-guard pattern as getMeta: cache the in-flight promise too.
+let tickerCache: { data: TickerItem[]; at: number } | null = null;
+let tickerInFlight: Promise<TickerItem[]> | null = null;
+const TICKER_TTL_MS = 30_000;
+
 export async function getTickerNews(): Promise<TickerItem[]> {
+  if (tickerCache && Date.now() - tickerCache.at < TICKER_TTL_MS) {
+    return tickerCache.data;
+  }
+  if (tickerInFlight) return tickerInFlight;
+  tickerInFlight = fetchTickerNews()
+    .then((data) => {
+      tickerCache = { data, at: Date.now() };
+      return data;
+    })
+    .finally(() => {
+      tickerInFlight = null;
+    });
+  return tickerInFlight;
+}
+
+async function fetchTickerNews(): Promise<TickerItem[]> {
   const { rows } = await pool.query(
     `SELECT n.company, n.title, n.link, n.topic
      FROM news n

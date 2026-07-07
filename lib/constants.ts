@@ -4,8 +4,8 @@
 export const PAGE_SIZE = 25;
 
 export const TOPIC_LABELS: Record<string, string> = {
-  general: "Company news",
-  stock: "Stock updates",
+  general: "Companies",
+  stock: "Stock",
   ipo: "IPO",
-  market: "Market updates",
+  market: "Market",
 };

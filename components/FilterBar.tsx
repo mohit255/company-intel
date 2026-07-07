@@ -2,8 +2,11 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { TOPIC_LABELS } from "@/lib/constants";
+import { useMeta, type Meta } from "@/lib/useMeta";
 import { fieldColor } from "./Cards";
 import SearchableSelect from "./SearchableSelect";
+import Spinner from "./Spinner";
 
 type Select = {
   key: string;
@@ -11,21 +14,69 @@ type Select = {
   options: string[] | { value: string; label: string }[];
 };
 
+type Kind = "news" | "jobs" | "products";
+
+// Per-kind select configuration, built from live `meta` state instead of
+// server props. Mirrors the shapes each page used to build inline.
+function selectsFor(kind: Kind, meta: Meta): Select[] {
+  switch (kind) {
+    case "news":
+      return [
+        {
+          key: "topic",
+          label: "Topic",
+          options: meta.topics.map((t) => ({
+            value: t,
+            label: TOPIC_LABELS[t] ?? t,
+          })),
+        },
+        { key: "company", label: "Company", options: meta.companies },
+        { key: "source", label: "Source", options: meta.sources },
+      ];
+    case "jobs":
+      return [
+        { key: "company", label: "Company", options: meta.companies },
+        {
+          key: "country",
+          label: "Country",
+          options: meta.countries.map((c) => ({
+            value: c.country,
+            label: `${c.country} (${c.jobs})`,
+          })),
+        },
+        { key: "city", label: "City", options: meta.allCities },
+      ];
+    case "products":
+      return [{ key: "company", label: "Company", options: meta.companies }];
+  }
+}
+
+// Placeholder labels shown while meta is loading, keyed the same as the
+// `selectsFor` keys above so the loading skeleton lines up with the real
+// selects once they appear.
+const PLACEHOLDER_SELECTS: Record<Kind, { key: string; label: string }[]> = {
+  news: [
+    { key: "topic", label: "Topic" },
+    { key: "company", label: "Company" },
+    { key: "source", label: "Source" },
+  ],
+  jobs: [
+    { key: "company", label: "Company" },
+    { key: "country", label: "Country" },
+    { key: "city", label: "City" },
+  ],
+  products: [{ key: "company", label: "Company" }],
+};
+
 export default function FilterBar({
-  fields,
-  selects,
+  kind,
   current,
-  citiesByCountry,
-  searchable = true,
   resultCount,
   header,
   children,
 }: {
-  fields: string[];
-  selects: Select[];
+  kind: Kind;
   current: Record<string, string>;
-  citiesByCountry?: Record<string, string[]>;
-  searchable?: boolean;
   resultCount: number;
   header?: React.ReactNode;
   children: React.ReactNode;
@@ -33,16 +84,23 @@ export default function FilterBar({
   const router = useRouter();
   const pathname = usePathname();
   const [q, setQ] = useState(current.q ?? "");
-  // lazy initializer reads localStorage synchronously on the client so the
-  // sidebar doesn't render open and then snap closed after hydration
-  const [open, setOpen] = useState(() =>
-    typeof window === "undefined"
-      ? true
-      : localStorage.getItem("filters-open") !== "0");
+  const meta = useMeta();
+  // starts open (matching the server's render, so hydration never
+  // mismatches); a client-only effect below corrects it to closed if the
+  // user previously collapsed it, at the cost of a brief flash for that
+  // case — the alternative (branching on typeof window in the initializer)
+  // caused a hydration mismatch error on every page load for any user who'd
+  // ever closed the sidebar.
+  const [open, setOpen] = useState(true);
   const [catOpen, setCatOpen] = useState(true);
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const searchable = kind !== "products";
+
   useEffect(() => setQ(current.q ?? ""), [current.q]);
+  useEffect(() => {
+    if (localStorage.getItem("filters-open") === "0") setOpen(false);
+  }, []);
 
   function toggle(next: boolean) {
     setOpen(next);
@@ -55,8 +113,8 @@ export default function FilterBar({
       if (v) params.set(k, v);
     }
     // picking a country resets the city unless the city belongs to it
-    if (next.country !== undefined && citiesByCountry) {
-      const cities = citiesByCountry[next.country] ?? [];
+    if (next.country !== undefined && meta?.citiesByCountry) {
+      const cities = meta.citiesByCountry[next.country] ?? [];
       if (!cities.includes(params.get("city") ?? "")) params.delete("city");
     }
     const qs = params.toString();
@@ -70,6 +128,8 @@ export default function FilterBar({
   }
 
   const activeCount = Object.values(current).filter(Boolean).length;
+  const fields = meta?.fields ?? [];
+  const selects = meta ? selectsFor(kind, meta) : null;
 
   return (
     <div className={`flex items-start gap-5 ${open ? "flex-col md:flex-row" : "flex-col"}`}>
@@ -127,22 +187,26 @@ export default function FilterBar({
           )}
 
           <div className="space-y-2">
-            {selects.map((s) => {
-              const opts =
-                s.key === "city" && citiesByCountry && current.country
-                  ? (citiesByCountry[current.country] ?? [])
-                  : s.options;
-              return (
-                <SearchableSelect
-                  key={s.key}
-                  label={s.label}
-                  options={opts}
-                  value={current[s.key] ?? ""}
-                  onChange={(v) => push({ [s.key]: v })}
-                  block
-                />
-              );
-            })}
+            {selects
+              ? selects.map((s) => {
+                  const opts =
+                    s.key === "city" && meta?.citiesByCountry && current.country
+                      ? (meta.citiesByCountry[current.country] ?? [])
+                      : s.options;
+                  return (
+                    <SearchableSelect
+                      key={s.key}
+                      label={s.label}
+                      options={opts}
+                      value={current[s.key] ?? ""}
+                      onChange={(v) => push({ [s.key]: v })}
+                      block
+                    />
+                  );
+                })
+              : PLACEHOLDER_SELECTS[kind].map((s) => (
+                  <SelectPlaceholder key={s.key} label={s.label} />
+                ))}
           </div>
 
           <div className="my-3.5 h-px bg-zinc-800/80" />
@@ -227,6 +291,24 @@ export default function FilterBar({
         {children}
       </div>
     </div>
+  );
+}
+
+// Non-interactive stand-in for SearchableSelect while meta is still
+// loading. Matches its collapsed-button visual footprint so there's no
+// layout jump once the real select mounts.
+function SelectPlaceholder({ label }: { label: string }) {
+  return (
+    <button
+      type="button"
+      disabled
+      aria-disabled="true"
+      className="flex h-9 w-full items-center gap-1.5 rounded-lg border
+          border-zinc-800 bg-zinc-900 px-3 text-[13px] opacity-60"
+    >
+      <Spinner size={14} />
+      <span className="truncate font-medium text-zinc-500">{label}</span>
+    </button>
   );
 }
 

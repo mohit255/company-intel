@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import DatasetCount from "@/components/DatasetCount";
 import FilterBar from "@/components/FilterBar";
 import InfiniteList from "@/components/InfiniteList";
-import { getMeta, getNews, TOPIC_LABELS } from "@/lib/queries";
+import { getNews, TOPIC_LABELS } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -39,8 +40,7 @@ export default async function NewsPage({
     topic: str(sp.topic),
     q: str(sp.q),
   };
-  const [meta, { items, total }] = await Promise.all([
-    getMeta(), getNews(filters)]);
+  const { items, total } = await getNews(filters);
 
   return (
     <div className="space-y-8 pt-10">
@@ -49,30 +49,11 @@ export default async function NewsPage({
         <div className="pointer-events-none absolute -right-10 -top-10
             h-40 w-40 rounded-full bg-amber-500/10 blur-3xl" />
         <h1 className="font-serif text-3xl font-bold text-zinc-50
-            sm:text-4xl">News</h1>
-        <p className="mt-1 text-zinc-400">
-          {meta.counts.news} articles from Google News, across{" "}
-          {meta.fields.length} industries.
-        </p>
+            sm:text-4xl">{sp.topic && TOPIC_LABELS[str(sp.topic)] ? TOPIC_LABELS[str(sp.topic)] : ""} News</h1>
+        <DatasetCount kind="news" />
       </header>
 
-      <FilterBar
-        fields={meta.fields}
-        selects={[
-          {
-            key: "topic",
-            label: "Topic",
-            options: meta.topics.map((t) => ({
-              value: t,
-              label: TOPIC_LABELS[t] ?? t,
-            })),
-          },
-          { key: "company", label: "Company", options: meta.companies },
-          { key: "source", label: "Source", options: meta.sources },
-        ]}
-        current={filters}
-        resultCount={total}
-      >
+      <FilterBar kind="news" current={filters} resultCount={total}>
         {total ? (
           <InfiniteList key={JSON.stringify(filters)} kind="news"
               initialItems={items} total={total} filters={filters} />

@@ -1,6 +1,19 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import Spinner from "@/components/Spinner";
 import { TOPIC_LABELS } from "@/lib/constants";
-import { getNews } from "@/lib/queries";
+
+// Client-safe mirror of lib/queries.ts's NewsItem type (kept minimal —
+// only the fields the Top News/Trending columns actually render).
+type NewsItem = {
+  title: string;
+  link: string;
+  company: string;
+  published: string | null;
+  added: string;
+};
 
 const topicStyle: Record<string, string> = {
   general: "border-zinc-700 text-zinc-400 hover:border-amber-500/50 hover:text-amber-300",
@@ -9,11 +22,28 @@ const topicStyle: Record<string, string> = {
   ipo:     "border-violet-800/60 text-violet-500 hover:border-violet-500/60 hover:text-violet-300",
 };
 
-export default async function Footer() {
-  const [{ items: topNews }, { items: trending }] = await Promise.all([
-    getNews({ topic: "general", limit: 5 }),
-    getNews({ limit: 5 }),
-  ]);
+export default function Footer() {
+  const [topNews, setTopNews] = useState<NewsItem[] | null>(null);
+  const [trending, setTrending] = useState<NewsItem[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    Promise.all([
+      fetch("/api/news?topic=general&limit=5").then((res) => res.json()),
+      fetch("/api/news?limit=5").then((res) => res.json()),
+    ])
+      .then(([topNewsData, trendingData]) => {
+        if (cancelled) return;
+        setTopNews(topNewsData.items);
+        setTrending(trendingData.items);
+      })
+      .catch((err) => console.error("Failed to load footer news", err));
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <footer className="border-t border-zinc-800 bg-zinc-950">
@@ -50,23 +80,29 @@ export default async function Footer() {
                 text-zinc-500">
               Top News
             </h4>
-            <ul className="space-y-3">
-              {topNews.map((item) => (
-                <li key={item.link}>
-                  <a href={item.link} target="_blank" rel="noopener noreferrer"
-                      className="group block space-y-0.5">
-                    <p className="text-[13px] font-medium leading-snug
-                        text-zinc-300 transition group-hover:text-amber-300
-                        line-clamp-2">
-                      {item.title}
-                    </p>
-                    <p className="text-[11px] text-zinc-600">
-                      {item.company} · {item.published ?? item.added}
-                    </p>
-                  </a>
-                </li>
-              ))}
-            </ul>
+            {topNews === null ? (
+              <div className="flex justify-center py-4">
+                <Spinner size={18} />
+              </div>
+            ) : (
+              <ul className="space-y-3">
+                {topNews.map((item) => (
+                  <li key={item.link}>
+                    <a href={item.link} target="_blank" rel="noopener noreferrer"
+                        className="group block space-y-0.5">
+                      <p className="text-[13px] font-medium leading-snug
+                          text-zinc-300 transition group-hover:text-amber-300
+                          line-clamp-2">
+                        {item.title}
+                      </p>
+                      <p className="text-[11px] text-zinc-600">
+                        {item.company} · {item.published ?? item.added}
+                      </p>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Trending */}
@@ -75,25 +111,31 @@ export default async function Footer() {
                 text-zinc-500">
               Trending Articles
             </h4>
-            <ul className="space-y-3">
-              {trending.map((item, i) => (
-                <li key={item.link} className="flex gap-3">
-                  <span className="font-serif text-2xl font-bold
-                      leading-none text-zinc-800 select-none">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <a href={item.link} target="_blank" rel="noopener noreferrer"
-                      className="group block space-y-0.5">
-                    <p className="text-[13px] font-medium leading-snug
-                        text-zinc-300 transition group-hover:text-amber-300
-                        line-clamp-2">
-                      {item.title}
-                    </p>
-                    <p className="text-[11px] text-zinc-600">{item.company}</p>
-                  </a>
-                </li>
-              ))}
-            </ul>
+            {trending === null ? (
+              <div className="flex justify-center py-4">
+                <Spinner size={18} />
+              </div>
+            ) : (
+              <ul className="space-y-3">
+                {trending.map((item, i) => (
+                  <li key={item.link} className="flex gap-3">
+                    <span className="font-serif text-2xl font-bold
+                        leading-none text-zinc-800 select-none">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <a href={item.link} target="_blank" rel="noopener noreferrer"
+                        className="group block space-y-0.5">
+                      <p className="text-[13px] font-medium leading-snug
+                          text-zinc-300 transition group-hover:text-amber-300
+                          line-clamp-2">
+                        {item.title}
+                      </p>
+                      <p className="text-[11px] text-zinc-600">{item.company}</p>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Explore links */}

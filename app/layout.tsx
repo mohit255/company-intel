@@ -3,6 +3,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import Link from "next/link";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
+import HeaderHeightSync from "@/components/HeaderHeightSync";
 import MarketTicker from "@/components/MarketTicker";
 import NavLinks from "@/components/NavLinks";
 import Tracker from "@/components/Tracker";
@@ -42,6 +43,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <Tracker />
         </Suspense>
+        <HeaderHeightSync />
         <header className="sticky top-0 z-40 border-b border-zinc-800
             bg-zinc-950 will-change-transform relative">
           <div className="mx-auto flex max-w-[1440px] items-center gap-4
@@ -54,9 +56,7 @@ export default function RootLayout({
               <NavLinks />
             </Suspense>
           </div>
-          <Suspense fallback={null}>
-            <MarketTicker />
-          </Suspense>
+          <MarketTicker />
         </header>
 
         <main className="mx-auto w-full max-w-[1440px] px-4 pb-24 sm:px-6">
