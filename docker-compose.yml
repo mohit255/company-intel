@@ -1,9 +1,13 @@
 services:
   app:
     build: .
-    network_mode: host
     env_file:
       - .env.local
     environment:
-      PORT: "8001"
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+    ports:
+      - "127.0.0.1:8001:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
