@@ -4,3 +4,6 @@ services:
     network_mode: host
     env_file:
       - .env.local
+    environment:
+      PORT: "8001"
+    restart: unless-stopped
