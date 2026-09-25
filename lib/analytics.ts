@@ -8,7 +8,7 @@ import { pool } from "./db";
    default (same root cause as the scraper's InsufficientPrivilege error).
    Fix by granting/transferring public schema ownership to the app user,
    or by having an admin pre-create this table once and granting the app
-   user only SELECT/INSERT/UPDATE/DELETE on it afterward. */
+   user only SELECT/INSERT on it (plus USAGE on its id sequence). */
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS analytics_events (
   id         BIGSERIAL PRIMARY KEY,
@@ -32,14 +32,20 @@ CREATE INDEX IF NOT EXISTS ae_created_idx ON analytics_events (created_at);
 let ready: Promise<void> | null = null;
 function ensureTable() {
   if (!ready) {
-    ready = pool.query(SCHEMA).then(
-      () => undefined,
-      (err) => {
-        ready = null;
-        console.error("[analytics] schema setup failed:", err);
-        throw err;
-      },
-    );
+    /* Skip DDL when the table already exists: Postgres checks CREATE on
+       the schema before IF NOT EXISTS, so a DML-only app user would fail
+       here even though the table is there. */
+    ready = pool
+      .query(`SELECT to_regclass('public.analytics_events') IS NOT NULL AS ok`)
+      .then(({ rows }) => (rows[0].ok ? undefined : pool.query(SCHEMA)))
+      .then(
+        () => undefined,
+        (err) => {
+          ready = null;
+          console.error("[analytics] schema setup failed:", err);
+          throw err;
+        },
+      );
   }
   return ready;
 }
